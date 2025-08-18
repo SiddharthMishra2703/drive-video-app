@@ -1,21 +1,30 @@
 // src/components/VideoList.jsx
 import React from 'react';
+import { List, ListItem, ListItemButton, ListItemText, Paper, Typography } from '@mui/material';
 
 const VideoList = ({ videos, onSelect }) => {
   return (
-    <div>
-      <h2>Your Drive Videos</h2>
-      {videos.length === 0 && <p>No videos found.</p>}
-      <ul style={{ listStyle: 'none', paddingLeft: 0 }}>
-        {videos.map((video) => (
-          <li key={video.id} style={{ marginBottom: '0.5rem' }}>
-            <button onClick={() => onSelect(video)} style={{ padding: '0.5rem 1rem' }}>
-              {video.name}
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <Paper elevation={2} sx={{ p: 2 }}>
+      <Typography variant="h6" gutterBottom>
+        Your Drive Videos
+      </Typography>
+      {videos.length === 0 ? (
+        <Typography color="text.secondary">No videos found.</Typography>
+      ) : (
+        <List dense>
+          {videos.map((video) => (
+            <ListItem key={video.id} disablePadding>
+              <ListItemButton onClick={() => onSelect(video)}>
+                <ListItemText
+                  primary={video.name}
+                  primaryTypographyProps={{ noWrap: true }}
+                />
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+      )}
+    </Paper>
   );
 };
 

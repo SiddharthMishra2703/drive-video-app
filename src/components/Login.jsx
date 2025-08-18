@@ -1,15 +1,28 @@
-// src/Login.jsx
+// src/Signin.jsx
 import { useState } from "react";
-import { auth, googleProvider } from "./firebase";
+import {
+  Avatar,
+  Button,
+  TextField,
+  Box,
+  Typography,
+  Container,
+  Paper,
+  Divider
+} from "@mui/material";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import GoogleIcon from "@mui/icons-material/Google";
+import { auth, googleProvider } from "../firebase";
 import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 
-function Login() {
+export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
 
-  // Email/password login
-  const handleLogin = async () => {
+  // Email/Password login
+  const handleLogin = async (e) => {
+    e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
       setMessage("✅ Logged in successfully!");
@@ -29,46 +42,67 @@ function Login() {
   };
 
   return (
-    <div className="p-6 max-w-sm mx-auto bg-white rounded-lg shadow-md">
-      <h2 className="text-xl font-bold mb-4">Login</h2>
-
-      {/* Email input */}
-      <input
-        type="email"
-        placeholder="Email"
-        className="border p-2 mb-2 w-full rounded"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-
-      {/* Password input */}
-      <input
-        type="password"
-        placeholder="Password"
-        className="border p-2 mb-4 w-full rounded"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-
-      {/* Login button */}
-      <button
-        onClick={handleLogin}
-        className="w-full bg-blue-500 text-white py-2 rounded mb-3"
+    <Container component="main" maxWidth="xs">
+      <Paper
+        elevation={6}
+        sx={{ mt: 8, p: 4, display: "flex", flexDirection: "column", alignItems: "center" }}
       >
-        Login
-      </button>
+        <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
+          <LockOutlinedIcon />
+        </Avatar>
+        <Typography component="h1" variant="h5">
+          Sign In
+        </Typography>
 
-      {/* Google login button */}
-      <button
-        onClick={handleGoogleLogin}
-        className="w-full bg-red-500 text-white py-2 rounded"
-      >
-        Login with Google
-      </button>
+        <Box component="form" onSubmit={handleLogin} sx={{ mt: 2 }}>
+          <TextField
+            margin="normal"
+            required
+            fullWidth
+            label="Email Address"
+            autoComplete="email"
+            autoFocus
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <TextField
+            margin="normal"
+            required
+            fullWidth
+            label="Password"
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
 
-      {message && <p className="mt-3 text-sm text-gray-600">{message}</p>}
-    </div>
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            sx={{ mt: 3, mb: 2 }}
+          >
+            Sign In
+          </Button>
+
+          <Divider sx={{ my: 2 }}>OR</Divider>
+
+          <Button
+            fullWidth
+            variant="outlined"
+            startIcon={<GoogleIcon />}
+            onClick={handleGoogleLogin}
+          >
+            Sign in with Google
+          </Button>
+        </Box>
+
+        {message && (
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+            {message}
+          </Typography>
+        )}
+      </Paper>
+    </Container>
   );
 }
-
-export default Login;
