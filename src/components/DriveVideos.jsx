@@ -5,17 +5,40 @@ import VideoPlayer from './VideoPlayer';
 import CustomVideoPlayer from './CustomVideoPlayer';
 import { Container, Typography, CircularProgress, Box } from '@mui/material';
 
+const API_KEY = import.meta.env.VITE_API_KEY;
+const FOLDER_ID = import.meta.env.VITE_FOLDER_ID;
+
 const DriveVideos = () => {
   const [videos, setVideos] = useState([]);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // useEffect(() => {
+  //   const fetchVideos = async () => {
+  //     try {
+  //       const response = await fetch(
+  //         `https://www.googleapis.com/drive/v3/files?q='${FOLDER_ID}'+in+parents+and+mimeType+contains+'video'&fields=files(id,name,mimeType)&key=${API_KEY}`
+  //       );
+  //       const data = await response.json();
+  //       setVideos(data.files || []);
+  //     } catch (error) {
+  //       console.error('Error fetching videos:', error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchVideos();
+  // }, []);
+
   useEffect(() => {
     const fetchVideos = async () => {
       try {
-        const response = await fetch('/api/videos'); // 🔥 call serverless API
+        const response = await fetch('/api/poster'); // 🔥 call serverless API
         const data = await response.json();
-        setVideos(data.files || []);
+        // console.log(data);
+        
+        setVideos(data || []);
       } catch (error) {
         console.error('Error fetching videos:', error);
       } finally {
@@ -46,7 +69,7 @@ const DriveVideos = () => {
           </Box>
 
           {/* Video List Below */}
-          <VideoList videos={videos} onSelect={setSelectedVideo} />
+          {videos && <VideoList videos={videos.movies} onSelect={setSelectedVideo} />}
         </>
       )}
     </Container>

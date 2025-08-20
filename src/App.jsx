@@ -3,6 +3,7 @@ import { auth } from "./firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import DriveVideos from "./components/DriveVideos";
 import Login from "./components/Login";
+import MoviePosterFetcher from "./components/MoviePosterFetcher";
 
 const App = () => {
   const [user, setUser] = useState(null);
@@ -17,7 +18,7 @@ const App = () => {
   return (
     <>
       {user ? <DriveVideos /> : <Login />}
-      
+      {/* <MoviePosterFetcher /> */}
     </>
   );
 };
