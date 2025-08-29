@@ -27,7 +27,7 @@ import ReportDialog from "./ReportDialog";
 
 const LS_KEY = "wrongThumbnails";
 
-const VideoList = ({ videos, onSelect, user }) => {
+const VideoList = ({ videos, onSelect, user, title }) => {
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [favorites, setFavorites] = useState({});
@@ -131,7 +131,7 @@ const VideoList = ({ videos, onSelect, user }) => {
       }}
     >
       <Typography variant="h5" gutterBottom sx={{ fontWeight: "bold", mb: 3 }}>
-        Your Movies
+        {title} Movies
       </Typography>
 
       {videos.length === 0 ? (

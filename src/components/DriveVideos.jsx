@@ -2,21 +2,30 @@
 import React, { useState, useEffect } from 'react';
 import VideoList from './VideoList';
 import VideoPlayer from './VideoPlayer';
+import MovieForm from "./MovieForm";
 import { Container, Typography, CircularProgress, Box } from '@mui/material';
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../firebase";
 
 const DriveVideos = ({user}) => {
   const [videos, setVideos] = useState([]);
+  const [linkMovies, setLinkMovies] = useState([]);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchVideos = async () => {
       try {
+        // 1️⃣ Fetch movies from Drive (/api/poster)
         const response = await fetch('/api/poster'); // 🔥 call serverless API
         const data = await response.json();
         // console.log(data);
-        
-        setVideos(data || []);
+        setVideos(data.movies || []);
+
+        // 2️⃣ Fetch movies from Firestore (linkMovies collection)
+        const snap = await getDocs(collection(db, "linkMovies"));
+        const firebaseMovies = snap.docs.map((doc) => doc.data());
+        setLinkMovies(firebaseMovies);
       } catch (error) {
         console.error('Error fetching videos:', error);
       } finally {
@@ -47,9 +56,12 @@ const DriveVideos = ({user}) => {
           </Box>
 
           {/* Video List Below */}
-          {videos && <VideoList user={user} videos={videos.movies} onSelect={setSelectedVideo} />}
+          {videos.length > 0 && <VideoList title={"Drive"} user={user} videos={videos} onSelect={setSelectedVideo} />}
+
+          {linkMovies.length > 0 && <VideoList title={"Added"} user={user} videos={linkMovies} onSelect={setSelectedVideo} />}
         </>
       )}
+      <MovieForm />
     </Container>
   );
 };
