@@ -14,24 +14,33 @@ import DownloadIcon from "@mui/icons-material/Download";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
-import { db } from "../firebase"; // 🔥 import firebase config
+import { db } from "../firebase";
 import {
   doc,
   setDoc,
   deleteDoc,
-  getDoc,
   collection,
   onSnapshot,
+  increment,
 } from "firebase/firestore";
 import ReportDialog from "./ReportDialog";
+
+const LS_KEY = "wrongThumbnails";
 
 const VideoList = ({ videos, onSelect, user }) => {
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [favorites, setFavorites] = useState({});
-  const [wrongThumbnails, setWrongThumbnails] = useState(new Set());
+  const [wrongThumbnails, setWrongThumbnails] = useState(new Map());
+  const [localWrongs, setLocalWrongs] = useState(new Set());
 
-  // 🔥 Fetch user's favorites
+  // 🔥 Load wrong thumbnails from localStorage
+  useEffect(() => {
+    const stored = JSON.parse(localStorage.getItem(LS_KEY) || "[]");
+    setLocalWrongs(new Set(stored));
+  }, []);
+
+  // 🔥 Listen to user's favorites
   useEffect(() => {
     if (!user) return;
     const unsub = onSnapshot(
@@ -45,12 +54,15 @@ const VideoList = ({ videos, onSelect, user }) => {
     return () => unsub();
   }, [user]);
 
-  // 🔥 Fetch wrong thumbnails (common for all users)
+  // 🔥 Listen to wrong thumbnails globally
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "wrongThumbnails"), (snapshot) => {
-      const wrongs = new Set();
-      snapshot.forEach((doc) => wrongs.add(doc.id));
-      setWrongThumbnails(wrongs);
+      const map = new Map();
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        map.set(doc.id, data.count || 1);
+      });
+      setWrongThumbnails(map);
     });
     return () => unsub();
   }, []);
@@ -68,13 +80,36 @@ const VideoList = ({ videos, onSelect, user }) => {
 
   // Report wrong thumbnail
   const reportWrongThumbnail = async (video) => {
-    await setDoc(doc(db, "wrongThumbnails", video.id), {
-      id: video.id,
-      title: video.title,
-    });
+    const id = video.id;
+
+    if (localWrongs.has(id)) {
+    setOpenDialog(false);
+    return;
+  }
+
+    // Update localStorage immediately
+    const updatedLocal = new Set(localWrongs);
+    updatedLocal.add(id);
+    setLocalWrongs(updatedLocal);
+    localStorage.setItem(LS_KEY, JSON.stringify([...updatedLocal]));
+
+    // Update Firestore count
+    const ref = doc(db, "wrongThumbnails", id);
+    await setDoc(
+      ref,
+      { id, title: video.title, count: increment(1) },
+      { merge: true }
+    );
+
     setOpenDialog(false);
   };
 
+  // Check if video thumbnail should blur
+  const shouldBlur = (id) => {
+    return localWrongs.has(id) || (wrongThumbnails.get(id) || 0) >= 3;
+  };
+
+  // Menu handlers
   const handleMenuClick = (video) => {
     setSelectedVideo(video);
     setOpenDialog(true);
@@ -95,11 +130,7 @@ const VideoList = ({ videos, onSelect, user }) => {
         textAlign: "center",
       }}
     >
-      <Typography
-        variant="h5"
-        gutterBottom
-        sx={{ fontWeight: "bold", mb: 3 }}
-      >
+      <Typography variant="h5" gutterBottom sx={{ fontWeight: "bold", mb: 3 }}>
         Your Movies
       </Typography>
 
@@ -121,7 +152,6 @@ const VideoList = ({ videos, onSelect, user }) => {
             <Masonry gutter="16px">
               {videos.map((video) => {
                 const isFavorite = favorites[video.id] || false;
-                const isWrongThumb = wrongThumbnails.has(video.id);
 
                 return (
                   <Card
@@ -133,7 +163,8 @@ const VideoList = ({ videos, onSelect, user }) => {
                       flexDirection: "column",
                       height: "100%",
                       position: "relative",
-                      transition: "transform 0.25s ease, box-shadow 0.25s ease",
+                      transition:
+                        "transform 0.25s ease, box-shadow 0.25s ease",
                       "@media (hover: hover) and (pointer: fine)": {
                         "&:hover": {
                           transform: "scale(1.03)",
@@ -173,7 +204,7 @@ const VideoList = ({ videos, onSelect, user }) => {
                           aspectRatio: "16/9",
                           objectFit: "cover",
                           transition: "transform 0.3s ease",
-                          filter: isWrongThumb ? "blur(8px)" : "none",
+                          filter: shouldBlur(video.id) ? "blur(8px)" : "none",
                           "@media (hover: hover) and (pointer: fine)": {
                             "&:hover": { transform: "scale(1.05)" },
                           },
@@ -181,18 +212,18 @@ const VideoList = ({ videos, onSelect, user }) => {
                       />
                     </Box>
 
-                    {/* Title + Favorite + Download */}
+                    {/* Title + Year + Buttons */}
                     <CardContent
                       sx={{
                         p: 1.5,
                         flexGrow: 1,
                         display: "flex",
-                        alignItems: "center",
+                        flexDirection: "column",
                         justifyContent: "space-between",
-                        gap: 1,
                       }}
                     >
-                      <Box sx={{ textAlign: "left", overflow: "hidden" }}>
+                      {/* Title & Year */}
+                      <Box sx={{ textAlign: "left", overflow: "hidden", flex: 1 }}>
                         <Typography
                           variant="subtitle1"
                           noWrap
@@ -203,14 +234,23 @@ const VideoList = ({ videos, onSelect, user }) => {
                         <Typography
                           variant="body2"
                           color="text.secondary"
-                          noWrap
+                          sx={{ mt: 0.5 }}
                         >
                           {video.year}
                         </Typography>
                       </Box>
 
-                      <Box sx={{ display: "flex", alignItems: "center" }}>
-                        {/* Favorite button */}
+                      {/* Buttons */}
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "flex-end",
+                          gap: 1,
+                          mt: 1,
+                        }}
+                      >
+                        {/* Favorite */}
                         <IconButton
                           size="small"
                           color={isFavorite ? "error" : "default"}
@@ -219,10 +259,14 @@ const VideoList = ({ videos, onSelect, user }) => {
                             toggleFavorite(video);
                           }}
                         >
-                          {isFavorite ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                          {isFavorite ? (
+                            <FavoriteIcon />
+                          ) : (
+                            <FavoriteBorderIcon />
+                          )}
                         </IconButton>
 
-                        {/* Download button */}
+                        {/* Download */}
                         <IconButton
                           component="a"
                           href={`https://drive.google.com/uc?export=download&id=${video.id}`}
