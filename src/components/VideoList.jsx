@@ -83,9 +83,9 @@ const VideoList = ({ videos, onSelect, user, title }) => {
     const id = video.id;
 
     if (localWrongs.has(id)) {
-    setOpenDialog(false);
-    return;
-  }
+      setOpenDialog(false);
+      return;
+    }
 
     // Update localStorage immediately
     const updatedLocal = new Set(localWrongs);
@@ -197,8 +197,16 @@ const VideoList = ({ videos, onSelect, user, title }) => {
                     >
                       <CardMedia
                         component="img"
-                        image={video.poster}
+                        image={
+                          video.poster && video.poster !== "N/A"
+                            ? video.poster
+                            : "/no-image.png"
+                        }
                         alt={video.title}
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = "/no-image.png";
+                        }}
                         sx={{
                           width: "100%",
                           aspectRatio: "16/9",
