@@ -1,0 +1,30 @@
+<!-- public/offline.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offline</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+    <style>
+      body { display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: Roboto, sans-serif; text-align: center; }
+      .container { max-width: 400px; }
+      .icon { font-size: 80px; color: gray; }
+      button { margin-top: 20px; padding: 10px 20px; font-size: 16px; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <span class="material-icons icon">wifi_off</span>
+      <h2>You are Offline</h2>
+      <p>Please check your internet connection. This page will refresh once you’re back online.</p>
+      <button onclick="location.reload()">Retry Now</button>
+    </div>
+
+    <script>
+      // ✅ Auto reload when back online
+      window.addEventListener('online', () => location.reload());
+    </script>
+  </body>
+</html>
