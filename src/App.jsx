@@ -3,6 +3,7 @@ import { auth } from "./firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import DriveVideos from "./components/DriveVideos";
 import Login from "./components/Login";
+import Offline from "./components/Offline"
 import {
   ThemeProvider,
   CssBaseline,
@@ -18,6 +19,7 @@ import Brightness7Icon from "@mui/icons-material/Brightness7";
 const App = () => {
   const [user, setUser] = useState(null);
   const [mode, setMode] = useState("dark"); // default theme
+  const [online, setOnline] = useState(navigator.onLine);
 
   // 🔥 keep theme in sync
   const theme = useMemo(
@@ -32,6 +34,21 @@ const App = () => {
   );
 
   useEffect(() => {
+    const goOnline = () => setOnline(true);
+    const goOffline = () => setOnline(false);
+
+    window.addEventListener("online", goOnline);
+    window.addEventListener("offline", goOffline);
+
+    return () => {
+      window.removeEventListener("online", goOnline);
+      window.removeEventListener("offline", goOffline);
+    };
+  }, []);
+
+  if (!online) return <Offline />;
+
+  useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
     });
@@ -41,6 +58,7 @@ const App = () => {
   const toggleTheme = () => {
     setMode((prev) => (prev === "light" ? "dark" : "light"));
   };
+  
 
   return (
     <ThemeProvider theme={theme}>

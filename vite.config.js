@@ -12,7 +12,7 @@ export default defineConfig({
       },
       manifest: {
         name: 'GDrive Video Player',
-        short_name: 'MyApp',
+        short_name: 'GD VPlayer',
         start_url: '/',
         display: 'standalone',
         background_color: '#ffffff',

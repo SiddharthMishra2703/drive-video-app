@@ -6,7 +6,14 @@ export default function Offline() {
   return (
     <Container
       maxWidth="sm"
-      sx={{ textAlign: "center", mt: 10, display: "flex", flexDirection: "column", gap: 3 }}
+      sx={{
+        mt: 10,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",   // ✅ centers horizontally
+        gap: 3,
+        textAlign: "center"
+      }}
     >
       <WifiOffIcon sx={{ fontSize: 80, color: "text.secondary" }} />
       <Typography variant="h4" gutterBottom>
