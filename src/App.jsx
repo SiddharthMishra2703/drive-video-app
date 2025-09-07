@@ -3,7 +3,8 @@ import { auth } from "./firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import DriveVideos from "./components/DriveVideos";
 import Login from "./components/Login";
-import Offline from "./components/Offline"
+import Offline from "./components/Offline";
+
 import {
   ThemeProvider,
   CssBaseline,
@@ -21,7 +22,7 @@ const App = () => {
   const [mode, setMode] = useState("dark"); // default theme
   const [online, setOnline] = useState(navigator.onLine);
 
-  // 🔥 keep theme in sync
+  // Theme setup
   const theme = useMemo(
     () =>
       createTheme({
@@ -33,6 +34,7 @@ const App = () => {
     [mode]
   );
 
+  // Track online/offline
   useEffect(() => {
     const goOnline = () => setOnline(true);
     const goOffline = () => setOnline(false);
@@ -46,8 +48,7 @@ const App = () => {
     };
   }, []);
 
-  if (!online) return <Offline />;
-
+  // Firebase Auth
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -55,19 +56,23 @@ const App = () => {
     return () => unsubscribe();
   }, []);
 
+  // Toggle Theme
   const toggleTheme = () => {
     setMode((prev) => (prev === "light" ? "dark" : "light"));
   };
-  
+
+  // ✅ Show Offline screen if no internet
+  if (!online) return <Offline />;
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      {/* Top AppBar with toggle */}
+
+      {/* Top AppBar with theme toggle */}
       <AppBar position="static" color="primary">
         <Toolbar>
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            Select Theme
+            GDrive Video Player
           </Typography>
           <IconButton color="inherit" onClick={toggleTheme}>
             {mode === "dark" ? <Brightness7Icon /> : <Brightness4Icon />}

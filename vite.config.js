@@ -11,8 +11,8 @@ export default defineConfig({
         enabled: true  // ✅ enables service worker in dev
       },
       manifest: {
-        name: 'GDrive Video Player',
-        short_name: 'GD VPlayer',
+        name: 'GDrive Player',
+        short_name: 'GDrive Player',
         start_url: '/',
         display: 'standalone',
         background_color: '#ffffff',
